@@ -1,26 +1,115 @@
 @import "tailwindcss";
 
+/* ================================================
+   Referer - Premium Dark Mode Design System
+   Professional UI with refined contrast
+   ================================================ */
+
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  /* Background hierarchy */
+  --bg-base: #0A0A0B;
+  --bg-elevated: #141416;
+  --bg-surface: #1A1A1E;
+  --bg-hover: #222226;
+  --bg-active: #2A2A2F;
+
+  /* Text hierarchy - WCAG AAA compliant */
+  --text-primary: #F4F4F5;
+  --text-secondary: #A1A1AA;
+  --text-tertiary: #71717A;
+  --text-disabled: #52525B;
+
+  /* Accent colors */
+  --accent: #818CF8;
+  --accent-hover: #A5B4FC;
+  --accent-muted: rgba(129, 140, 248, 0.15);
+
+  /* Borders */
+  --border: #27272A;
+  --border-hover: #3F3F46;
+  --border-focus: #818CF8;
+
+  /* Semantic colors */
+  --success: #4ADE80;
+  --success-muted: rgba(74, 222, 128, 0.15);
+  --error: #F87171;
+  --error-muted: rgba(248, 113, 113, 0.15);
+  --warning: #FBBF24;
+
+  /* Shadows */
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.4);
+  --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.5);
+  --shadow-lg: 0 12px 40px rgba(0, 0, 0, 0.6);
 }
 
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
+  --color-background: var(--bg-base);
+  --color-foreground: var(--text-primary);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+* {
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+  color-scheme: dark;
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background: var(--bg-base);
+  color: var(--text-primary);
+  font-family: var(--font-geist-sans), system-ui, -apple-system, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Premium scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--border);
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--border-hover);
+}
+
+/* Selection */
+::selection {
+  background: var(--accent);
+  color: var(--bg-base);
+}
+
+/* Focus styles */
+:focus-visible {
+  outline: 2px solid var(--border-focus);
+  outline-offset: 2px;
+}
+
+/* Active source highlight */
+@keyframes pulse-highlight {
+
+  0%,
+  100% {
+    box-shadow: 0 0 0 0 rgba(129, 140, 248, 0.4);
+  }
+
+  50% {
+    box-shadow: 0 0 0 8px rgba(129, 140, 248, 0);
+  }
+}
+
+.source-active {
+  animation: pulse-highlight 2s ease-in-out infinite;
 }
