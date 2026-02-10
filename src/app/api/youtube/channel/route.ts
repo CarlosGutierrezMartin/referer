@@ -1,4 +1,5 @@
 import { createClient } from '@/lib/supabase/server';
+import { cookies } from 'next/headers';
 import { NextResponse } from 'next/server';
 
 // POST /api/youtube/channel — Link authenticated user's Google account to their YouTube channel
@@ -14,13 +15,23 @@ export async function POST() {
             );
         }
 
-        // Get the provider token (Google OAuth access token)
-        const { data: { session } } = await supabase.auth.getSession();
-        const providerToken = session?.provider_token;
+        // Get the provider token from multiple sources (in priority order)
+        const cookieStore = await cookies();
+        let providerToken = cookieStore.get('provider_token')?.value;
+
+        // Fallback: try the session (works right after login in some cases)
+        if (!providerToken) {
+            const { data: { session } } = await supabase.auth.getSession();
+            providerToken = session?.provider_token || undefined;
+        }
 
         if (!providerToken) {
             return NextResponse.json(
-                { error: 'No se encontró el token de Google. Por favor, inicia sesión de nuevo con Google.' },
+                {
+                    error: 'No se encontró el token de Google. ' +
+                        'Es necesario volver a iniciar sesión con Google para obtener acceso a YouTube.',
+                    code: 'MISSING_PROVIDER_TOKEN',
+                },
                 { status: 400 }
             );
         }
@@ -37,9 +48,26 @@ export async function POST() {
 
         if (!ytResponse.ok) {
             const errorData = await ytResponse.json().catch(() => ({}));
-            console.error('YouTube API error:', errorData);
+            console.error('YouTube API error:', ytResponse.status, errorData);
+
+            // Provide specific error messages
+            if (ytResponse.status === 401 || ytResponse.status === 403) {
+                // Token expired or insufficient permissions
+                // Clear the invalid cookie
+                const response = NextResponse.json(
+                    {
+                        error: 'El token de Google ha expirado o no tiene permisos suficientes. ' +
+                            'Por favor, vuelve a hacer clic en "Verificar con Google".',
+                        code: 'TOKEN_EXPIRED',
+                    },
+                    { status: 401 }
+                );
+                response.cookies.delete('provider_token');
+                return response;
+            }
+
             return NextResponse.json(
-                { error: 'Error al acceder a la YouTube API. Verifica que tu cuenta de Google tiene un canal de YouTube.' },
+                { error: 'Error al acceder a la YouTube API.' },
                 { status: 400 }
             );
         }
@@ -91,10 +119,13 @@ export async function POST() {
             );
         }
 
-        return NextResponse.json({
+        // Clean up the provider_token cookie (one-time use)
+        const response = NextResponse.json({
             creator,
             message: `¡Canal "${channelName}" verificado correctamente!`,
         });
+        response.cookies.delete('provider_token');
+        return response;
 
     } catch (error) {
         console.error('Channel verification error:', error);
