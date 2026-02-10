@@ -74,10 +74,10 @@ Deno.serve(async (req) => {
 
         const supabase = createClient(supabaseUrl, supabaseServiceKey)
 
-        // Find video by youtube_id (include user_id for attribution)
+        // Find video by youtube_id (include user_id and youtube_channel_id for attribution)
         const { data: video, error: videoError } = await supabase
             .from('videos')
-            .select('id, title, youtube_id, user_id')
+            .select('id, title, youtube_id, user_id, youtube_channel_id')
             .eq('youtube_id', youtube_id)
             .single()
 
@@ -119,10 +119,18 @@ Deno.serve(async (req) => {
         }
 
         // Enrich sources with attribution info
-        const enrichedSources = (sources || []).map(s => ({
-            ...s,
-            is_creator_source: s.contributed_by === video.user_id,
-        }))
+        // Must match BOTH: contributor is the video owner AND the video's YouTube channel
+        // matches the creator's verified channel
+        const enrichedSources = (sources || []).map(s => {
+            const isOwner = s.contributed_by === video.user_id;
+            const channelMatches = creator && video.youtube_channel_id &&
+                video.youtube_channel_id === creator.youtube_channel_id;
+
+            return {
+                ...s,
+                is_creator_source: Boolean(isOwner && channelMatches),
+            }
+        })
 
         // Return video, sources, and creator info
         return new Response(

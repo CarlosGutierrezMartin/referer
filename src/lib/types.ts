@@ -13,6 +13,7 @@ export interface Video {
   id: string;
   user_id: string;
   youtube_id: string;
+  youtube_channel_id: string | null;
   title: string;
   thumbnail_url: string | null;
   created_at: string;

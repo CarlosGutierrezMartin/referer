@@ -60,11 +60,25 @@ export default function NewVideoPage() {
                 return;
             }
 
+            // Fetch the video's actual YouTube channel ID
+            let youtubeChannelId: string | null = null;
+            try {
+                const infoRes = await fetch(`/api/youtube/video-info?v=${videoId}`);
+                if (infoRes.ok) {
+                    const info = await infoRes.json();
+                    youtubeChannelId = info.channel_id || null;
+                }
+            } catch {
+                // Non-critical: continue without channel ID
+                console.warn('Could not fetch YouTube channel ID');
+            }
+
             const { data, error: insertError } = await supabase
                 .from('videos')
                 .insert({
                     user_id: user.id,
                     youtube_id: videoId,
+                    youtube_channel_id: youtubeChannelId,
                     title: title.trim(),
                     thumbnail_url: getYouTubeThumbnail(videoId),
                 })

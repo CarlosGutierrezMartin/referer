@@ -22,8 +22,14 @@ export function PublicViewer({ video, sources, creator }: PublicViewerProps) {
     const activeSourceRef = useRef<HTMLDivElement>(null);
 
     // Determine if a source was added by the video creator (verified)
+    // Must match BOTH: contributor is the video owner AND the video's YouTube channel
+    // matches the creator's verified channel
     const isCreatorSource = (source: Source): boolean => {
-        return source.contributed_by === video.user_id;
+        if (!creator || !video.youtube_channel_id) return false;
+        return (
+            source.contributed_by === video.user_id &&
+            video.youtube_channel_id === creator.youtube_channel_id
+        );
     };
 
     // Check if there are any community sources
