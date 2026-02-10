@@ -52,13 +52,28 @@ export async function POST() {
 
             // Provide specific error messages
             if (ytResponse.status === 401 || ytResponse.status === 403) {
-                // Token expired or insufficient permissions
+                // Check if it's an API not enabled error
+                const reason = errorData?.error?.errors?.[0]?.reason || '';
+                const googleMessage = errorData?.error?.message || '';
+
+                let userMessage = 'Error de autenticación con YouTube. ';
+
+                if (reason === 'accessNotConfigured' || googleMessage.includes('not enabled')) {
+                    userMessage += 'La YouTube Data API v3 no está habilitada en tu proyecto de Google Cloud. ' +
+                        'Ve a Google Cloud Console → APIs & Services → Library → busca "YouTube Data API v3" → Habilitar.';
+                } else if (reason === 'forbidden' || reason === 'insufficientPermissions') {
+                    userMessage += 'No se concedieron los permisos de YouTube necesarios. ' +
+                        'Haz clic de nuevo en "Verificar con Google" y acepta TODOS los permisos.';
+                } else {
+                    userMessage += `Detalle: ${googleMessage || `HTTP ${ytResponse.status} - ${reason || 'unknown'}`}`;
+                }
+
                 // Clear the invalid cookie
                 const response = NextResponse.json(
                     {
-                        error: 'El token de Google ha expirado o no tiene permisos suficientes. ' +
-                            'Por favor, vuelve a hacer clic en "Verificar con Google".',
-                        code: 'TOKEN_EXPIRED',
+                        error: userMessage,
+                        code: 'YOUTUBE_API_ERROR',
+                        debug: { status: ytResponse.status, reason, googleMessage },
                     },
                     { status: 401 }
                 );
