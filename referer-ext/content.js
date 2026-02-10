@@ -8,6 +8,7 @@ let sources = [];
 let currentVideoId = null;
 let overlayElement = null;
 let activeIndex = -1;
+let creatorInfo = null;
 
 // ============ API ============
 
@@ -23,13 +24,13 @@ async function getVideoSources(youtubeId) {
 
         if (!response.ok) {
             console.error('Referer: API error', response.status);
-            return { video: null, sources: [] };
+            return { video: null, sources: [], creator: null };
         }
 
         return await response.json();
     } catch (error) {
         console.error('Referer: Network error', error);
-        return { video: null, sources: [] };
+        return { video: null, sources: [], creator: null };
     }
 }
 
@@ -78,6 +79,25 @@ function removeOverlay() {
     activeIndex = -1;
 }
 
+function getAttributionBadge(source) {
+    if (source.is_creator_source) {
+        return `<span class="referer-badge referer-badge-creator" title="Añadida por el creador del video">
+            <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="m9 12 2 2 4-4"/>
+            </svg>
+            Creador
+        </span>`;
+    } else if (source.contributed_by) {
+        return `<span class="referer-badge referer-badge-community" title="Añadida por la comunidad">
+            <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+            </svg>
+            Comunidad
+        </span>`;
+    }
+    return '';
+}
+
 function createOverlay(sourcesData) {
     removeOverlay();
 
@@ -93,10 +113,22 @@ function createOverlay(sourcesData) {
     overlayElement = document.createElement('div');
     overlayElement.id = 'referer-overlay';
 
+    // Header with optional creator verification badge
+    let creatorBadge = '';
+    if (creatorInfo) {
+        creatorBadge = `
+        <span class="referer-verified-badge" title="Creador verificado: ${escapeHtml(creatorInfo.youtube_channel_name || '')}">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#4ADE80" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="m9 12 2 2 4-4"/>
+            </svg>
+        </span>`;
+    }
+
     let html = `
     <div class="referer-header">
-      <span class="referer-logo">📚</span>
+      <img src="${chrome.runtime.getURL('icon128.png')}" alt="R" style="width:20px;height:20px;">
       <span class="referer-title">Referer</span>
+      ${creatorBadge}
       <span class="referer-count">${sourcesData.length} fuentes</span>
       <button class="referer-minimize" title="Minimizar">−</button>
     </div>
@@ -104,11 +136,15 @@ function createOverlay(sourcesData) {
   `;
 
     sourcesData.forEach((s, i) => {
+        const badge = getAttributionBadge(s);
         html += `
       <div class="referer-source" data-index="${i}" data-time="${s.timestamp_seconds}">
         <span class="referer-time">${formatTime(s.timestamp_seconds)}</span>
         <div class="referer-content">
-          <p class="referer-claim">${escapeHtml(s.claim)}</p>
+          <div class="referer-claim-row">
+            <p class="referer-claim">${escapeHtml(s.claim)}</p>
+            ${badge}
+          </div>
           <a href="${escapeHtml(s.source_url)}" target="_blank" rel="noopener" class="referer-link">
             ${getHostname(s.source_url)}
           </a>
@@ -193,10 +229,16 @@ async function init() {
     removeOverlay();
     currentVideoId = videoId;
     sources = [];
+    creatorInfo = null;
 
     console.log('Referer: Checking video', videoId);
 
     const data = await getVideoSources(videoId);
+
+    // Store creator info for attribution display
+    if (data.creator) {
+        creatorInfo = data.creator;
+    }
 
     if (data.sources && data.sources.length > 0) {
         console.log('Referer: Found', data.sources.length, 'sources');

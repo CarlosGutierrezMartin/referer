@@ -1,3 +1,5 @@
+// @ts-nocheck — This file runs on Deno (Supabase Edge Functions), not Node.js.
+// IDE TypeScript errors for Deno globals and URL imports are expected and harmless.
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 
 const corsHeaders = {
@@ -12,6 +14,8 @@ interface VideoSource {
     claim: string
     source_text: string | null
     source_url: string
+    contributed_by: string | null
+    is_creator_source: boolean
     created_at: string
 }
 
@@ -19,6 +23,7 @@ interface Video {
     id: string
     title: string
     youtube_id: string
+    user_id: string
 }
 
 Deno.serve(async (req) => {
@@ -69,29 +74,36 @@ Deno.serve(async (req) => {
 
         const supabase = createClient(supabaseUrl, supabaseServiceKey)
 
-        // Find video by youtube_id
+        // Find video by youtube_id (include user_id for attribution)
         const { data: video, error: videoError } = await supabase
             .from('videos')
-            .select('id, title, youtube_id')
+            .select('id, title, youtube_id, user_id')
             .eq('youtube_id', youtube_id)
             .single()
 
         if (videoError || !video) {
-            // No video found - this is not an error, just means no sources registered
             return new Response(
                 JSON.stringify({
                     video: null,
                     sources: [],
+                    creator: null,
                     message: 'No registered sources for this video'
                 }),
                 { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
             )
         }
 
+        // Check if video owner is a verified creator
+        const { data: creator } = await supabase
+            .from('creators')
+            .select('youtube_channel_id, youtube_channel_name, youtube_channel_avatar')
+            .eq('user_id', video.user_id)
+            .single()
+
         // Get sources for this video, ordered by timestamp
         const { data: sources, error: sourcesError } = await supabase
             .from('sources')
-            .select('id, video_id, timestamp_seconds, claim, source_text, source_url, created_at')
+            .select('id, video_id, timestamp_seconds, claim, source_text, source_url, contributed_by, created_at')
             .eq('video_id', video.id)
             .order('timestamp_seconds', { ascending: true })
 
@@ -106,12 +118,23 @@ Deno.serve(async (req) => {
             )
         }
 
-        // Return video and sources
+        // Enrich sources with attribution info
+        const enrichedSources = (sources || []).map(s => ({
+            ...s,
+            is_creator_source: s.contributed_by === video.user_id,
+        }))
+
+        // Return video, sources, and creator info
         return new Response(
             JSON.stringify({
-                video: video as Video,
-                sources: (sources || []) as VideoSource[],
-                count: sources?.length || 0
+                video: {
+                    id: video.id,
+                    title: video.title,
+                    youtube_id: video.youtube_id,
+                },
+                sources: enrichedSources,
+                creator: creator || null,
+                count: enrichedSources.length
             }),
             { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
         )

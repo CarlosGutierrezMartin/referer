@@ -1,7 +1,7 @@
 import { createClient } from '@/lib/supabase/server';
 import { notFound } from 'next/navigation';
 import { PublicViewer } from './PublicViewer';
-import type { Video, Source } from '@/lib/types';
+import type { Video, Source, Creator } from '@/lib/types';
 import type { Metadata } from 'next';
 
 export const dynamic = 'force-dynamic';
@@ -42,6 +42,17 @@ async function getSources(videoId: string): Promise<Source[]> {
     return data || [];
 }
 
+async function getCreatorForUser(userId: string): Promise<Creator | null> {
+    const supabase = await createClient();
+    const { data } = await supabase
+        .from('creators')
+        .select('*')
+        .eq('user_id', userId)
+        .single();
+
+    return data || null;
+}
+
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
     const { videoId } = await params;
     const video = await getVideo(videoId);
@@ -80,6 +91,7 @@ export default async function PublicViewerPage({ params }: PageProps) {
     }
 
     const sources = await getSources(videoId);
+    const creator = await getCreatorForUser(video.user_id);
 
-    return <PublicViewer video={video} sources={sources} />;
+    return <PublicViewer video={video} sources={sources} creator={creator} />;
 }

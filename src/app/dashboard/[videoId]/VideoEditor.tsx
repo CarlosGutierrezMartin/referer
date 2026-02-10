@@ -8,7 +8,8 @@ import { SourceForm } from '@/components/dashboard/SourceForm';
 import { SourceList } from '@/components/dashboard/SourceList';
 import { getYouTubeEmbedUrl } from '@/lib/youtube';
 import { generateYouTubeDescription } from '@/lib/export';
-import { ArrowLeft, ExternalLink, Copy, Check, BookOpen, FileText } from 'lucide-react';
+import { ArrowLeft, ExternalLink, Copy, Check, FileText } from 'lucide-react';
+import Image from 'next/image';
 import type { Video, Source } from '@/lib/types';
 
 interface VideoEditorProps {
@@ -79,9 +80,7 @@ export function VideoEditor({ video, initialSources }: VideoEditorProps) {
                             >
                                 <ArrowLeft className="w-5 h-5 text-gray-600 dark:text-gray-400" />
                             </Link>
-                            <div className="w-8 h-8 rounded-lg bg-blue-600 flex items-center justify-center">
-                                <BookOpen className="w-4 h-4 text-white" />
-                            </div>
+                            <Image src="/logo.png" alt="Referer" width={28} height={28} className="invert brightness-200" />
                             <h1 className="font-semibold text-gray-900 dark:text-white truncate max-w-md">
                                 {video.title}
                             </h1>

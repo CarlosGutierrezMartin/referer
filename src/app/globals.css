@@ -2,38 +2,39 @@
 
 /* ================================================
    Referer - Premium Dark Mode Design System
-   Professional UI with refined contrast
+   Refined, alive, modern
    ================================================ */
 
 :root {
   /* Background hierarchy */
-  --bg-base: #0A0A0B;
-  --bg-elevated: #141416;
-  --bg-surface: #1A1A1E;
-  --bg-hover: #222226;
-  --bg-active: #2A2A2F;
+  --bg-base: #09090B;
+  --bg-elevated: #131316;
+  --bg-surface: #1A1A1F;
+  --bg-hover: #222228;
+  --bg-active: #2A2A32;
 
-  /* Text hierarchy - WCAG AAA compliant */
+  /* Text hierarchy */
   --text-primary: #F4F4F5;
   --text-secondary: #A1A1AA;
   --text-tertiary: #71717A;
   --text-disabled: #52525B;
 
-  /* Accent colors */
+  /* Accent — indigo/violet core */
   --accent: #818CF8;
   --accent-hover: #A5B4FC;
-  --accent-muted: rgba(129, 140, 248, 0.15);
+  --accent-muted: rgba(129, 140, 248, 0.12);
+  --accent-glow: rgba(129, 140, 248, 0.25);
 
   /* Borders */
   --border: #27272A;
   --border-hover: #3F3F46;
   --border-focus: #818CF8;
 
-  /* Semantic colors */
+  /* Semantic */
   --success: #4ADE80;
-  --success-muted: rgba(74, 222, 128, 0.15);
+  --success-muted: rgba(74, 222, 128, 0.12);
   --error: #F87171;
-  --error-muted: rgba(248, 113, 113, 0.15);
+  --error-muted: rgba(248, 113, 113, 0.12);
   --warning: #FBBF24;
 
   /* Shadows */
@@ -66,7 +67,7 @@ body {
   -moz-osx-font-smoothing: grayscale;
 }
 
-/* Premium scrollbar */
+/* Scrollbar */
 ::-webkit-scrollbar {
   width: 6px;
   height: 6px;
@@ -85,19 +86,18 @@ body {
   background: var(--border-hover);
 }
 
-/* Selection */
 ::selection {
   background: var(--accent);
   color: var(--bg-base);
 }
 
-/* Focus styles */
 :focus-visible {
   outline: 2px solid var(--border-focus);
   outline-offset: 2px;
 }
 
-/* Active source highlight */
+/* ============ ANIMATIONS ============ */
+
 @keyframes pulse-highlight {
 
   0%,
@@ -112,4 +112,96 @@ body {
 
 .source-active {
   animation: pulse-highlight 2s ease-in-out infinite;
+}
+
+@keyframes float {
+
+  0%,
+  100% {
+    transform: translateY(0px);
+  }
+
+  50% {
+    transform: translateY(-6px);
+  }
+}
+
+@keyframes shimmer {
+  0% {
+    background-position: -200% 0;
+  }
+
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+@keyframes fade-up {
+  from {
+    opacity: 0;
+    transform: translateY(16px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes gradient-shift {
+
+  0%,
+  100% {
+    background-position: 0% 50%;
+  }
+
+  50% {
+    background-position: 100% 50%;
+  }
+}
+
+@keyframes glow-pulse {
+
+  0%,
+  100% {
+    opacity: 0.4;
+  }
+
+  50% {
+    opacity: 0.8;
+  }
+}
+
+.animate-float {
+  animation: float 5s ease-in-out infinite;
+}
+
+.animate-shimmer {
+  background-size: 400% 100%;
+  animation: shimmer 3s linear infinite;
+}
+
+.animate-fade-up {
+  animation: fade-up 0.6s ease-out both;
+}
+
+.animate-fade-up-delay-1 {
+  animation: fade-up 0.6s ease-out 0.1s both;
+}
+
+.animate-fade-up-delay-2 {
+  animation: fade-up 0.6s ease-out 0.2s both;
+}
+
+.animate-fade-up-delay-3 {
+  animation: fade-up 0.6s ease-out 0.3s both;
+}
+
+.animate-gradient {
+  animation: gradient-shift 6s ease infinite;
+  background-size: 200% 200%;
+}
+
+.animate-glow {
+  animation: glow-pulse 3s ease-in-out infinite;
 }

@@ -1,10 +1,10 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { createClient } from '@/lib/supabase/client';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
-import { parseTimestamp, isValidTimestamp, formatTimestamp } from '@/lib/time-utils';
+import { parseTimestamp, isValidTimestamp } from '@/lib/time-utils';
 import { Plus, Clock, FileText, Link2, Quote } from 'lucide-react';
 import type { Source, CreateSourceInput } from '@/lib/types';
 
@@ -20,12 +20,26 @@ export function SourceForm({ videoId, onSourceAdded }: SourceFormProps) {
     const [sourceUrl, setSourceUrl] = useState('');
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
+    const [userId, setUserId] = useState<string | null>(null);
 
     const supabase = createClient();
+
+    useEffect(() => {
+        async function getUser() {
+            const { data: { user } } = await supabase.auth.getUser();
+            if (user) setUserId(user.id);
+        }
+        getUser();
+    }, []);
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         setError(null);
+
+        if (!userId) {
+            setError('Debes iniciar sesión para añadir fuentes.');
+            return;
+        }
 
         // Validaciones
         if (!isValidTimestamp(timestamp)) {
@@ -63,6 +77,7 @@ export function SourceForm({ videoId, onSourceAdded }: SourceFormProps) {
             claim: claim.trim(),
             source_text: sourceText.trim() || null,
             source_url: sourceUrl.trim(),
+            contributed_by: userId,
             created_at: new Date().toISOString(),
         };
 
@@ -84,6 +99,7 @@ export function SourceForm({ videoId, onSourceAdded }: SourceFormProps) {
                     claim: claim.trim(),
                     source_text: sourceText.trim() || null,
                     source_url: sourceUrl.trim(),
+                    contributed_by: userId,
                 } as CreateSourceInput)
                 .select()
                 .single();

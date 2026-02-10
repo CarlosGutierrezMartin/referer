@@ -26,7 +26,23 @@ export interface Source {
   claim: string;
   source_text: string | null;
   source_url: string;
+  contributed_by: string | null;
   created_at: string;
+}
+
+// Extended source with creator verification status (computed, not stored)
+export interface SourceWithAttribution extends Source {
+  is_creator_source: boolean;
+  contributor_name?: string | null;
+}
+
+export interface Creator {
+  id: string;
+  user_id: string;
+  youtube_channel_id: string;
+  youtube_channel_name: string | null;
+  youtube_channel_avatar: string | null;
+  verified_at: string;
 }
 
 // Para formularios y creación
@@ -42,6 +58,7 @@ export interface CreateSourceInput {
   claim: string;
   source_text?: string;
   source_url: string;
+  contributed_by: string;
 }
 
 // Para la UI del visor

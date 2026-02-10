@@ -1,7 +1,8 @@
 import { createClient } from '@/lib/supabase/server';
 import { redirect } from 'next/navigation';
 import Link from 'next/link';
-import { Plus, Video, BookOpen, ExternalLink, LogOut } from 'lucide-react';
+import { Plus, Video, ExternalLink, LogOut, Settings } from 'lucide-react';
+import Image from 'next/image';
 import { Button } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
 import { getYouTubeThumbnail } from '@/lib/youtube';
@@ -42,9 +43,7 @@ export default async function DashboardPage() {
                 <div className="max-w-6xl mx-auto px-6">
                     <div className="flex items-center justify-between h-16">
                         <div className="flex items-center gap-2.5">
-                            <div className="w-8 h-8 rounded-lg bg-[#818CF8] flex items-center justify-center">
-                                <BookOpen className="w-4 h-4 text-[#0A0A0B]" />
-                            </div>
+                            <Image src="/logo.png" alt="Referer" width={28} height={28} className="invert brightness-200" />
                             <span className="text-lg font-semibold text-[#F4F4F5] tracking-tight">Referer</span>
                         </div>
 
@@ -52,6 +51,12 @@ export default async function DashboardPage() {
                             <span className="text-sm text-[#71717A] hidden sm:block">
                                 {user.email}
                             </span>
+                            <Link href="/dashboard/settings">
+                                <Button variant="ghost" size="sm">
+                                    <Settings className="w-4 h-4" />
+                                    <span className="hidden sm:inline">Ajustes</span>
+                                </Button>
+                            </Link>
                             <form action="/auth/signout" method="post">
                                 <Button variant="ghost" size="sm" type="submit">
                                     <LogOut className="w-4 h-4" />

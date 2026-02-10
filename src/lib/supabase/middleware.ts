@@ -35,10 +35,11 @@ export async function updateSession(request: NextRequest) {
         data: { user },
     } = await supabase.auth.getUser();
 
-    // Proteger rutas del dashboard
-    const isDashboardRoute = request.nextUrl.pathname.startsWith('/dashboard');
+    // Proteger rutas del dashboard y contribute
+    const isProtected = request.nextUrl.pathname.startsWith('/dashboard') ||
+        request.nextUrl.pathname.startsWith('/contribute');
 
-    if (isDashboardRoute && !user) {
+    if (isProtected && !user) {
         const url = request.nextUrl.clone();
         url.pathname = '/login';
         return NextResponse.redirect(url);

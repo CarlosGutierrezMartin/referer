@@ -29,10 +29,21 @@
     },
     "action": {
         "default_popup": "popup.html",
-        "default_title": "Referer"
+        "default_title": "Referer",
+        "default_icon": "icon128.png"
     },
     "icons": {
-        "48": "icon.svg",
-        "128": "icon.svg"
-    }
+        "48": "icon128.png",
+        "128": "icon128.png"
+    },
+    "web_accessible_resources": [
+        {
+            "resources": [
+                "icon128.png"
+            ],
+            "matches": [
+                "https://www.youtube.com/*"
+            ]
+        }
+    ]
 }
